@@ -218,3 +218,13 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# env variants (keep an example file tracked if you have one)
+.env.*
+!.env.example
+
+# Vim swap/undo/backup files
+*~
+*.swp
+*.swo
+*.un~
