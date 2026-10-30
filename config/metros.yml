@@ -1,0 +1,16 @@
+# A non-remote job is kept only if one of its locations names one of these
+# cities together with the state (full name or abbreviation), so Portland, Maine
+# doesn't count. A location with no state at all (e.g. just "Seattle") also matches.
+# Lists are based on the metro area (MSA) counties. Edit freely.
+Portland:
+  states: [Oregon, OR, Washington, WA]
+  cities: [Portland, Beaverton, Hillsboro, Gresham, Lake Oswego, Tigard, Tualatin,
+           Wilsonville, Oregon City, West Linn, Milwaukie, Happy Valley, Clackamas,
+           Troutdale, Fairview, Sherwood, Forest Grove, Cornelius, Gladstone,
+           Vancouver, Camas, Washougal, Battle Ground, Ridgefield]
+Seattle:
+  states: [Washington, WA]
+  cities: [Seattle, Bellevue, Redmond, Kirkland, Bothell, Woodinville, Issaquah,
+           Sammamish, Renton, Kent, Auburn, Federal Way, Tukwila, SeaTac, Burien,
+           Shoreline, Mercer Island, Lynnwood, Edmonds, Everett, Mukilteo,
+           Tacoma, Lakewood, Puyallup, Joint Base Lewis-McChord, Fort Lewis]

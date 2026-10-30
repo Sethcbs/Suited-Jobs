@@ -1,0 +1,4 @@
+# Company job boards (public APIs, no key). source: greenhouse | lever | ashby
+- name: Jama Software
+  source: greenhouse
+  slug: jamasoftware
