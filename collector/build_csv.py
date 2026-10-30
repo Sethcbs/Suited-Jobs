@@ -11,7 +11,7 @@ from pathlib import Path
 
 import yaml
 
-from collector import schema, skills, usajobs
+from collector import boards, schema, skills, usajobs
 
 ROOT = Path(__file__).parent.parent
 CSV_PATH = ROOT / "data" / "jobs.csv"
@@ -101,7 +101,9 @@ def write_csv(rows, path=CSV_PATH):
 def collect():
     """Run every source. Returns (jobs, failed_count, total_count)."""
     jobs, failed = usajobs.fetch_all()
-    return jobs, failed, len(usajobs.SEARCHES)
+    companies = boards.load_companies()
+    board_jobs, board_failed = boards.fetch_all(companies)
+    return jobs + board_jobs, failed + board_failed, len(usajobs.SEARCHES) + len(companies)
 
 
 def main():
