@@ -1,0 +1,7 @@
+job_id,source,title,company,location,metro,remote,salary,skills,url,description_snippet,date_posted,date_fetched
+usajobs:1,usajobs,IT Specialist (Sysadmin),Bonneville Power Administration,"Portland, Oregon",Portland,false,$90000-$120000 Per Year,Linux|Python,https://example.com/1,Dummy posting one.,2026-10-28,2026-10-30
+usajobs:2,usajobs,Data Analyst,Veterans Health Administration,"Seattle, Washington",Seattle,false,$80000-$100000 Per Year,SQL|Excel|Data Analysis,https://example.com/2,Dummy posting two.,2026-10-29,2026-10-30
+usajobs:3,usajobs,Cybersecurity Specialist,Department of the Treasury,Anywhere in the U.S. (remote job),,true,$110000-$140000 Per Year,Cybersecurity|Python,https://example.com/3,Dummy posting three.,2026-10-30,2026-10-30
+greenhouse:4,greenhouse,Software Engineer,Jama Software,"Portland, OR",Portland,false,,Java|AWS|SQL,https://example.com/4,Dummy posting four.,2026-10-25,2026-10-30
+greenhouse:5,greenhouse,Senior QA Engineer,Jama Software,Remote,,true,,Python|CI/CD,https://example.com/5,Dummy posting five.,2026-10-20,2026-10-30
+usajobs:6,usajobs,Nurse,Veterans Health Administration,"Tacoma, Washington",Seattle,false,$70000-$95000 Per Year,,https://example.com/6,Dummy posting six.,2026-10-27,2026-10-30
