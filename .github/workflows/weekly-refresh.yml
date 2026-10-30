@@ -1,0 +1,49 @@
+name: Weekly job refresh
+
+on:
+  schedule:
+    - cron: "0 14 * * 5"  # Fridays 14:00 UTC (7 AM PDT / 6 AM PST)
+  workflow_dispatch:       # "Run workflow" button for manual runs
+
+permissions:
+  contents: write          # needed to push data/jobs.csv
+
+concurrency:
+  group: weekly-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install packages
+        run: pip install -r requirements.txt
+
+      - name: Run tests
+        run: pytest -q
+
+      - name: Collect jobs and build data/jobs.csv
+        env:
+          USAJOBS_API_KEY: ${{ secrets.USAJOBS_API_KEY }}
+          USAJOBS_USER_AGENT_EMAIL: ${{ secrets.USAJOBS_USER_AGENT_EMAIL }}
+        run: python -m collector.build_csv
+
+      - name: Commit data/jobs.csv if it changed
+        run: |
+          git add data/jobs.csv
+          if git diff --cached --quiet; then
+            echo "No changes to data/jobs.csv"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Weekly refresh: data/jobs.csv ($(date -u +%Y-%m-%d))"
+          git push
