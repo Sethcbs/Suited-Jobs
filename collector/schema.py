@@ -6,15 +6,15 @@ COLUMNS = ["job_id", "source", "title", "company", "location", "metro", "remote"
 SNIPPET_LEN = 300
 
 
+def _clean(value):
+    return re.sub(r"\s+", " ", value or "").strip()
+
+
 def snippet(text):
-    text = re.sub(r"\s+", " ", text or "").strip()
+    text = _clean(text)
     if len(text) <= SNIPPET_LEN:
         return text
     return text[:SNIPPET_LEN].rsplit(" ", 1)[0] + "..."
-
-
-def _clean(value):
-    return re.sub(r"\s+", " ", value or "").strip()
 
 
 def to_row(job, metro, skills, date_fetched):
