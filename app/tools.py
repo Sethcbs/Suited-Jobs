@@ -28,9 +28,10 @@ class JobTools:
         return {s["skill"] for s in self.get_skills()["skills"]}
 
     def search_jobs(self, skills, limit=SEARCH_LIMIT):
-        """Jobs ranked by overlap with skills (FR-13). Score = matched / job's skills.
+        """Jobs ranked by overlap with skills (FR-13): most skills matched, then highest score.
 
-        Jobs with no listed skills can't be scored, so they rank last.
+        Score = matched / job's skills. It can't go first, or a job listing a single skill
+        scores 1.0 and pushes out jobs that match far more. Jobs with no listed skills rank last.
         """
         wanted = {s.strip().lower() for s in skills}
         scored = []
@@ -40,12 +41,12 @@ class JobTools:
             if job_skills and not matched:
                 continue
             score = len(matched) / len(job_skills) if job_skills else 0.0
-            scored.append((score, len(matched), row["date_posted"], row["job_id"], matched))
+            scored.append((len(matched), score, row["date_posted"], row["job_id"], matched))
         scored.sort(reverse=True)
         jobs = [{**{f: self.rows[job_id][f] for f in SEARCH_FIELDS},
                  "skills": row_skills(self.rows[job_id]), "matched_skills": matched,
                  "score": round(score, 2)}
-                for score, _count, _date, job_id, matched in scored[:limit]]
+                for _count, score, _date, job_id, matched in scored[:limit]]
         return {"total_found": len(scored), "jobs": jobs}
 
     def get_job(self, job_id):

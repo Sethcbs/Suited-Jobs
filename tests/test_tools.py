@@ -24,7 +24,15 @@ def test_get_skills_counts_mentions_most_first(tools):
         {"skill": "AWS", "mentions": 1}]
 
 
-def test_search_ranks_by_share_of_job_skills_matched(tools):
+def test_many_matched_skills_beat_a_perfect_score_on_one_skill():
+    wanted = ["Python", "AWS", "Docker", "Kubernetes", "SQL"]
+    rows = [row(f"one{i}", ["Python"], "2026-11-01") for i in range(25)]
+    rows.append(row("strong", wanted + ["Java", "C#"], "2026-01-01"))
+    jobs = JobTools(rows, "", []).search_jobs(wanted)["jobs"]
+    assert jobs[0]["job_id"] == "strong" and jobs[0]["score"] == 0.71
+
+
+def test_search_ranks_equal_matches_by_share_of_job_skills(tools):
     jobs = tools.search_jobs(["Python", "SQL"])["jobs"]
     assert [(j["job_id"], j["score"]) for j in jobs] == [("a", 1.0), ("b", 0.5), ("d", 0.0)]
     assert jobs[1]["matched_skills"] == ["Python", "SQL"]
@@ -36,7 +44,7 @@ def test_search_ignores_case_and_skips_jobs_with_no_overlap(tools):
     assert "c" not in ids and ids[-1] == "d"  # no listed skills rank last
 
 
-def test_search_breaks_score_ties_by_matched_count_then_newest():
+def test_search_orders_by_matched_count_then_score_then_newest():
     rows = [row("old", ["Python"], "2026-01-01"), row("new", ["Python"], "2026-10-01"),
             row("two", ["Python", "SQL"], "2025-01-01")]
     ids = [j["job_id"] for j in JobTools(rows, "", []).search_jobs(["Python", "SQL"])["jobs"]]
