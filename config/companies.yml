@@ -9,3 +9,18 @@
 - name: Snowflake
   source: ashby
   slug: snowflake
+- name: C1
+  source: ashby
+  slug: C1
+- name: Prophetic Technologies
+  source: ashby
+  slug: prophetic-technologies
+- name: CreativeX
+  source: greenhouse
+  slug: creativex
+- name: Metron
+  source: greenhouse
+  slug: metron
+- name: Panthalassa
+  source: greenhouse
+  slug: panthalassa
