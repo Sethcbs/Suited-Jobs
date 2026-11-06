@@ -64,3 +64,14 @@ exact_case:
   Excel: [Excel]
 exact_case_not_after: [Schedule, Band, Team, Part, Grade, Appendix, Category, Section,
                        Title, Class, Tier, Level, Phase, Group, Unit, Step, Option, Plan]
+# A job stays in the CSV if it has a skill not listed under general, or if its title
+# matches tech_titles. General skills are still tagged but don't qualify a job alone.
+general: [Excel, Project Management, Data Analysis, Agile, SharePoint, Salesforce,
+          Requirements Management]
+tech_titles: [information technology, software, developer, programmer, computer,
+              data engineer, data engineering, data scientist, database, devops,
+              site reliability, technical program manager,
+              network engineer, network administrator, systems administrator,
+              system administrator, systems engineer, security engineer, cloud engineer,
+              ai engineer, ml engineer, web]
+tech_titles_exact_case: [IT, AI]

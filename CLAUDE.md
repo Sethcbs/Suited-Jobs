@@ -25,7 +25,7 @@ description_snippet, date_posted, date_fetched.
 - Each run rebuilds the table from the sources, so jobs a source stops returning drop out.
   If every source fails, leave the old CSV unchanged.
 - Non-remote jobs whose location isn't in config/metros.yml are dropped.
-- Jobs with no skills from config/skills.yml are dropped before the row limits apply, so the CSV can hold fewer than 500 rows.
+- Non-tech jobs are dropped before the row limits apply, so the CSV can hold fewer than 500 rows. A job is tech if it has a skill outside `general` in config/skills.yml or its title matches `tech_titles`.
 
 ## Layout
 collector/ (usajobs.py, boards.py, schema.py, skills.py, build_csv.py) · config/ (companies.yml, skills.yml, metros.yml)

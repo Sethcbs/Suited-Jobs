@@ -186,7 +186,7 @@ The first eight fields in my original list are here, plus the columns I need for
 8. **Drop gone jobs.** Each run rebuilds the table from what the sources return that week, so a job a source no longer lists disappears. For company boards this is exact, because they return every open job. USAJOBS returns search results, so a missing job might be outside the search window and not closed. I fetch enough pages to cover the newest postings and let older ones age out.
 9. **Blanks.** Missing fields stay blank. Nothing is guessed.
 10. **Fetch date.** date\_fetched is the date of the run.
-11. **Tech jobs only.** This is a tech job board, so a job with no skills from config/skills.yml is dropped before the group targets apply. The CSV holds fewer than 500 rows when fewer jobs qualify.
+11. **Tech jobs only.** This is a tech job board, so non-tech jobs are dropped before the group targets apply. A job counts as tech if it has a skill outside the general list in config/skills.yml, or if its title matches the tech title list there. General skills like Excel are still tagged but don't qualify a job alone, and a job kept for its title alone can have a blank skills column. The CSV holds fewer than 500 rows when fewer jobs qualify.
 
 ## 9) Collection pipeline and schedule
 

@@ -108,6 +108,36 @@ def test_drops_jobs_with_no_skills(metros, patterns):
     assert rows[0]["skills"] == "Python"
 
 
+@pytest.mark.parametrize("title,text,kept", [
+    ("Budget Analyst", "Excel and project management.", False),  # general skills only
+    ("Budget Analyst", "Excel and SQL.", True),  # a non-general skill qualifies it
+    ("IT Specialist", "Supports users.", True),  # tech title, no listed skill
+    ("IT SPECIALIST", "Supports users.", True),
+    ("Senior AI Software Engineer", "Builds models.", True),
+    ("Computer Engineer", "Uses Excel daily", True),  # tech title with a general skill
+    ("Technical Program Manager - Security", "Runs programs.", True),
+    ("Staff Research Scientist, AI Agents", "Runs studies.", True),
+    ("Paid medical leave coordinator", "Aid to staff.", False),  # AI must match exact case
+    ("Civil Engineer", "Designs bridges.", False),
+    ("Is it open?", "Supports users.", False),  # IT must match exact case
+    ("Hospital Clerk", "Website updates.", False),  # title words match whole words only
+])
+def test_tech_job_rules(metros, patterns, title, text, kept):
+    rows = build_csv.build([job(1, title=title, text=text)], "d", metros, patterns)
+    assert bool(rows) is kept
+
+
+def test_general_skills_are_still_tagged_on_kept_jobs(metros, patterns):
+    rows = build_csv.build([job(1, title="IT Specialist", text="Uses Excel daily")],
+                           "d", metros, patterns)
+    assert rows[0]["skills"] == "Excel"
+
+
+def test_tech_title_with_no_listed_skills_has_blank_skills(metros, patterns):
+    rows = build_csv.build([job(1, title="IT Specialist", text="")], "d", metros, patterns)
+    assert rows[0]["skills"] == ""
+
+
 def test_a_skill_in_the_title_is_enough(metros, patterns):
     rows = build_csv.build([job(1, title="Python Developer", text="")], "d", metros, patterns)
     assert [r["skills"] for r in rows] == ["Python"]

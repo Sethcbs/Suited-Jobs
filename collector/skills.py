@@ -32,3 +32,19 @@ def load(path=DEFAULT_PATH):
 def find(text, patterns):
     """Standard names of every skill found in text, in config order."""
     return [name for name, rx in patterns if rx.search(text or "")]
+
+
+def load_tech_rules(path=DEFAULT_PATH):
+    """Return (general_skill_names, tech_title_regexes) for is_tech."""
+    cfg = yaml.safe_load(Path(path).read_text())
+    titles = "|".join(re.escape(t) for t in cfg.get("tech_titles") or [])
+    exact = "|".join(re.escape(t) for t in cfg.get("tech_titles_exact_case") or [])
+    regexes = [re.compile(f"{EDGE_BEFORE}(?:{titles}){EDGE_AFTER}", re.I),
+               re.compile(f"{EDGE_BEFORE}(?:{exact}){EDGE_AFTER}")]
+    return {str(s) for s in cfg.get("general") or []}, regexes
+
+
+def is_tech(title, found, rules):
+    """True if a job has a non-general skill or a tech title."""
+    general, regexes = rules
+    return bool(set(found) - general) or any(rx.search(title or "") for rx in regexes)

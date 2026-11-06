@@ -72,13 +72,14 @@ def select(groups, targets=TARGETS, max_rows=MAX_ROWS):
     return chosen + _newest_first(leftovers)[:max(free, 0)]
 
 
-def build(jobs, today, metros, patterns):
+def build(jobs, today, metros, patterns, tech_rules=None):
     """Pure rebuild: jobs from this run only, so gone jobs drop out (FR-5)."""
+    tech_rules = tech_rules or skills.load_tech_rules()
     groups, metro_of, skills_of = {name: [] for name in TARGETS}, {}, {}
     for job in dedupe(jobs):
-        # Tech job board: tag first so jobs with no skills never take up a slot
+        # Tech job board: check first so non-tech jobs never take up a slot
         found = skills.find(f"{job.get('title', '')}\n{job.get('text', '')}", patterns)
-        if not found:
+        if not skills.is_tech(job.get("title", ""), found, tech_rules):
             continue
         skills_of[job["job_id"]] = found
         if job.get("remote"):
