@@ -12,11 +12,15 @@ import time
 import requests
 from flask import Flask, render_template, request
 
+from app import resume
+from collector import skills
+
 RAW_URL = "https://raw.githubusercontent.com/Sethcbs/Suited-Jobs/main/data/jobs.csv"
 CACHE_SECONDS = 300
 PLACES = ["Portland", "Seattle", "Remote"]
 
 app = Flask(__name__)
+app.config["MAX_CONTENT_LENGTH"] = resume.MAX_BYTES
 log = logging.getLogger(__name__)
 _cache = {"source": None, "rows": None, "time": 0.0}
 
@@ -81,3 +85,29 @@ def index():
         all_skills=sorted({s for r in rows for s in r["skills"].split("|") if s}),
         all_sources=sorted({r["source"] for r in rows}),
     )
+
+
+def _match_page(status=200, **context):
+    defaults = {"error": "", "resume_text": "", "resume_skills": [], "chosen_places": []}
+    return render_template("match.html", places=PLACES, **{**defaults, **context}), status
+
+
+@app.errorhandler(413)
+def too_large(_error):
+    return _match_page(413, error="That file is too large. The limit is 5 MB.")
+
+
+@app.route("/match", methods=["GET", "POST"])
+def match():
+    if request.method == "GET":
+        return _match_page()
+    places = [p for p in request.form.getlist("place") if p in PLACES]
+    upload = request.files.get("resume")
+    if not upload or not upload.filename:
+        return _match_page(400, error="Please choose a PDF resume.", chosen_places=places)
+    try:
+        text = resume.extract_text(upload.read())
+    except resume.ResumeError as exc:
+        return _match_page(400, error=str(exc), chosen_places=places)
+    return _match_page(resume_text=text, resume_skills=skills.find(text, skills.load()),
+                       chosen_places=places)
