@@ -37,6 +37,12 @@ def test_bad_files_get_a_clear_message(data, message):
         resume.extract_text(data)
 
 
+def test_very_long_text_is_rejected(monkeypatch):
+    monkeypatch.setattr(resume, "MAX_CHARS", 5)
+    with pytest.raises(resume.ResumeError, match="too much text"):
+        resume.extract_text(make_pdf("Python and SQL developer"))
+
+
 def test_password_protected_pdf_is_rejected():
     writer = PdfWriter()
     writer.add_blank_page(width=200, height=200)

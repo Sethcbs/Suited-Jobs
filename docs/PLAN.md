@@ -273,6 +273,8 @@ The agent turns a PDF resume into a short ranked list of job links, each with a 
 
 **Model and cost.** I start with a tool-use loop on the Claude API, to learn how agents work in practice. The four tools are plain Python functions with JSON-schema descriptions, with a thin adapter for each model provider, so another model can be swapped in. The collection pipeline never depends on any of this. I filter jobs in code before sending anything to the model, to keep cost near $10 (a soft limit). The resume is sent with each request and is not stored.
 
+**As built.** Flask reads the PDF before the loop starts, so the agent itself calls three tools: get\_skills, search\_jobs, and get\_job. get\_skills and search\_jobs don't take the resume or the location as input, because code already holds both, which keeps the model from searching outside the person's choice. The model returns only job IDs, reasons, an assessment, and guidance. Code fills in each link, matching skill, and missing skill from the CSV, and works out the common missing skills (FR-15). Each resume gets at most 8 API calls. The model is set with SUITED\_JOBS\_MODEL and defaults to claude-opus-5-5.
+
 ## 13) Timeline and milestones
 
 Version 1.0 is due November 1, so I have four days. Friday, October 30 is my one chance to show a scheduled run before then.

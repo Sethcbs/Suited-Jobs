@@ -12,7 +12,8 @@ import time
 import requests
 from flask import Flask, render_template, request
 
-from app import resume
+from app import agent, resume
+from app.tools import JobTools
 from collector import skills
 
 RAW_URL = "https://raw.githubusercontent.com/Sethcbs/Suited-Jobs/main/data/jobs.csv"
@@ -88,7 +89,8 @@ def index():
 
 
 def _match_page(status=200, **context):
-    defaults = {"error": "", "resume_text": "", "resume_skills": [], "chosen_places": []}
+    defaults = {"error": "", "resume_text": "", "resume_skills": [], "chosen_places": [],
+                "result": None}
     return render_template("match.html", places=PLACES, **{**defaults, **context}), status
 
 
@@ -109,5 +111,19 @@ def match():
         text = resume.extract_text(upload.read())
     except resume.ResumeError as exc:
         return _match_page(400, error=str(exc), chosen_places=places)
-    return _match_page(resume_text=text, resume_skills=skills.find(text, skills.load()),
-                       chosen_places=places)
+    patterns = skills.load()
+    context = {"resume_text": text, "resume_skills": skills.find(text, patterns),
+               "chosen_places": places}
+    if request.form.get("action") != "match":
+        return _match_page(**context)
+    try:
+        rows = filter_rows(load_rows(os.environ.get("JOBS_CSV", RAW_URL)), places)
+    except Exception as exc:
+        return _match_page(error=f"Could not load jobs ({type(exc).__name__}).", **context)
+    if not rows:  # nothing to match, so don't spend money asking the model
+        return _match_page(error="No jobs are available for those locations.", **context)
+    try:
+        result = agent.run_agent(JobTools(rows, text, patterns), text, places)
+    except agent.AgentError as exc:
+        return _match_page(error=str(exc), **context)
+    return _match_page(result=result, **context)

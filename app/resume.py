@@ -5,6 +5,7 @@ import logging
 from pypdf import PdfReader
 
 MAX_BYTES = 5 * 1024 * 1024
+MAX_CHARS = 30000
 
 logging.getLogger("pypdf").setLevel(logging.ERROR)  # bad PDFs are reported to the person instead
 
@@ -28,4 +29,6 @@ def extract_text(data):
         raise ResumeError("That PDF couldn't be read. It may be damaged.") from exc
     if not text:
         raise ResumeError("No text found in that PDF. A scanned resume has no text layer to read.")
+    if len(text) > MAX_CHARS:  # it goes to the model on every request, so this protects the budget
+        raise ResumeError("That PDF has too much text for a resume. Please upload a shorter one.")
     return text

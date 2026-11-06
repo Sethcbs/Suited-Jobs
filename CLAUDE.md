@@ -2,7 +2,13 @@
 
 Full plan: docs/PLAN.md (long; read only the section you need).
 
-## Version 1.0 (due Nov 1, 2026) — no AI agent yet (that is 2.0)
+## Version 2.0 (due Nov 30, 2026) — resume matching agent, in progress
+- `/match` on the Flask page reads a PDF in memory (`app/resume.py`) and runs a tool-use loop on the Claude API (`app/agent.py`) over plain Python tools (`app/tools.py`).
+- Links, titles, and skill lists come from the CSV in code. The model only chooses jobs and explains them. Unknown job IDs are dropped and flagged.
+- Never store or log resume text. Tests use a fake client and never call the real API. Real API runs cost money, so ask first.
+- Model is `claude-opus-5-5` unless `SUITED_JOBS_MODEL` is set.
+
+## Version 1.0 (due Nov 1, 2026) — collection and display
 - A GitHub Action (every Friday, cron `0 14 * * 5`, plus workflow_dispatch) collects postings and writes `data/jobs.csv`.
 - Sources: USAJOBS API (searches: Portland, Seattle, Remote) and public company boards
   (Greenhouse first: Jama Software, slug `jamasoftware`; Lever/Ashby only if time allows).
@@ -11,7 +17,7 @@ Full plan: docs/PLAN.md (long; read only the section you need).
 ## Hard rules
 - Public APIs only. No scraping. No AI calls during collection. Skip Workday, Adzuna, ZipRecruiter, and Bright Data.
 - Secrets: `USAJOBS_API_KEY` and `USAJOBS_USER_AGENT_EMAIL` come from env vars only (gitignored `.env` locally, GitHub Secrets in the Action).
-  Never print, log, or commit them.
+  Never print, log, or commit them. `ANTHROPIC_API_KEY` follows the same rule, and only the Flask page uses it.
 - Never guess field values. Unknown CSV fields stay blank. Check unknowns against a real API response.
 - Keep steps small, and commit after each step with tests passing (`.venv/bin/pytest -q`).
 
