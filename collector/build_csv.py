@@ -74,8 +74,13 @@ def select(groups, targets=TARGETS, max_rows=MAX_ROWS):
 
 def build(jobs, today, metros, patterns):
     """Pure rebuild: jobs from this run only, so gone jobs drop out (FR-5)."""
-    groups, metro_of = {name: [] for name in TARGETS}, {}
+    groups, metro_of, skills_of = {name: [] for name in TARGETS}, {}, {}
     for job in dedupe(jobs):
+        # Tech job board: tag first so jobs with no skills never take up a slot
+        found = skills.find(f"{job.get('title', '')}\n{job.get('text', '')}", patterns)
+        if not found:
+            continue
+        skills_of[job["job_id"]] = found
         if job.get("remote"):
             groups["remote"].append(job)
             continue
@@ -86,11 +91,8 @@ def build(jobs, today, metros, patterns):
         if metro:  # non-remote jobs outside both metros are dropped
             metro_of[job["job_id"]] = metro
             groups[metro].append(job)
-    rows = []
-    for job in _newest_first(select(groups)):
-        found = skills.find(f"{job.get('title', '')}\n{job.get('text', '')}", patterns)
-        rows.append(schema.to_row(job, metro_of.get(job["job_id"], ""), found, today))
-    return rows
+    return [schema.to_row(job, metro_of.get(job["job_id"], ""), skills_of[job["job_id"]], today)
+            for job in _newest_first(select(groups))]
 
 
 def write_csv(rows, path=CSV_PATH):
@@ -122,6 +124,9 @@ def main():
         return 1
     today = datetime.now(timezone.utc).date().isoformat()
     rows = build(jobs, today, load_metros(), skills.load())
+    if not rows:  # never replace the CSV with an empty table
+        log.error("No jobs passed the filters; leaving %s unchanged", CSV_PATH.name)
+        return 1
     write_csv(rows)
     counts = {}
     for r in rows:

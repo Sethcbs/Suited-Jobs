@@ -16,7 +16,7 @@ def metros():
 def job(n, remote=False, city="Portland, Oregon", date="2026-10-01", **kw):
     return {"job_id": f"t:{n}", "source": "usajobs", "title": f"Job {n}", "company": "Agency",
             "location": city, "cities": [city], "remote": remote, "date_posted": date,
-            "text": "", **kw}
+            "text": "Requires Python.", **kw}
 
 
 # --- skills (FR-6) ---
@@ -98,6 +98,34 @@ def test_drops_jobs_outside_metros_and_gone_jobs(metros, patterns):
     assert {r["job_id"] for r in build_csv.build(week1, "d", metros, patterns)} == {"t:1", "t:2"}
     week2 = [job(1)]  # source no longer lists job 2 (FR-5)
     assert {r["job_id"] for r in build_csv.build(week2, "d", metros, patterns)} == {"t:1"}
+
+
+# --- tech jobs only ---
+def test_drops_jobs_with_no_skills(metros, patterns):
+    jobs = [job(1), job(2, text="Provides patient care.")]
+    rows = build_csv.build(jobs, "d", metros, patterns)
+    assert [r["job_id"] for r in rows] == ["t:1"]
+    assert rows[0]["skills"] == "Python"
+
+
+def test_a_skill_in_the_title_is_enough(metros, patterns):
+    rows = build_csv.build([job(1, title="Python Developer", text="")], "d", metros, patterns)
+    assert [r["skills"] for r in rows] == ["Python"]
+
+
+def test_jobs_with_no_skills_do_not_take_slots(metros, patterns):
+    newer = [job(f"new{i}", date="2026-10-02", text="No keywords.") for i in range(600)]
+    older = [job(f"old{i}", date="2026-01-01") for i in range(10)]
+    rows = build_csv.build(newer + older, "d", metros, patterns)
+    assert len(rows) == 10 and all(r["job_id"].startswith("t:old") for r in rows)
+
+
+def test_main_keeps_old_csv_when_no_job_has_skills(monkeypatch):
+    def fail_if_written(rows):
+        raise AssertionError("CSV should not be written")
+    monkeypatch.setattr(build_csv, "collect", lambda: ([job(1, text="No keywords.")], 0, 1))
+    monkeypatch.setattr(build_csv, "write_csv", fail_if_written)
+    assert build_csv.main() == 1
 
 
 # --- schema / blanks (FR-2) ---
