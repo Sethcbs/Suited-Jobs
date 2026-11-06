@@ -57,8 +57,9 @@ TOOLS = [
         "name": "search_jobs",
         "description": "Find jobs in the person's chosen locations whose listed skills overlap "
                        "the given skills. Returns at most 20 jobs, best first. score is the share "
-                       "of a job's listed skills that matched. Jobs with no listed skills have a "
-                       "score of 0 and come last, but can still fit based on their title.",
+                       "of a job's listed skills that matched. The newest jobs with no listed "
+                       "skills come last with a score of 0. Their postings name no known tools, "
+                       "so judge them by title and call get_job on any that could fit.",
         "strict": True,
         "input_schema": {
             "type": "object",

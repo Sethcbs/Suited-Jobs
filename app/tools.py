@@ -4,6 +4,7 @@ One JobTools holds one person's resume text and their jobs, already filtered to 
 places they chose. The model can't search outside those jobs or ask for another resume.
 """
 SEARCH_LIMIT = 20
+RESERVED_UNLISTED = 5  # slots kept for jobs with no listed skills
 SEARCH_FIELDS = ["job_id", "title", "company", "location", "metro", "remote", "salary",
                  "date_posted"]
 
@@ -31,7 +32,8 @@ class JobTools:
         """Jobs ranked by overlap with skills (FR-13): most skills matched, then highest score.
 
         Score = matched / job's skills. It can't go first, or a job listing a single skill
-        scores 1.0 and pushes out jobs that match far more. Jobs with no listed skills rank last.
+        scores 1.0 and pushes out jobs that match far more. Jobs with no listed skills rank last,
+        but the newest few always get a slot, or a job kept for its title would never be seen.
         """
         wanted = {s.strip().lower() for s in skills}
         scored = []
@@ -43,10 +45,14 @@ class JobTools:
             score = len(matched) / len(job_skills) if job_skills else 0.0
             scored.append((len(matched), score, row["date_posted"], row["job_id"], matched))
         scored.sort(reverse=True)
+        matched_jobs = [s for s in scored if s[0]]
+        unlisted = [s for s in scored if not s[0]]  # already newest first
+        chosen = matched_jobs[:limit - min(len(unlisted), RESERVED_UNLISTED)]
+        chosen += unlisted[:limit - len(chosen)]
         jobs = [{**{f: self.rows[job_id][f] for f in SEARCH_FIELDS},
                  "skills": row_skills(self.rows[job_id]), "matched_skills": matched,
                  "score": round(score, 2)}
-                for _count, score, _date, job_id, matched in scored[:limit]]
+                for _count, score, _date, job_id, matched in chosen]
         return {"total_found": len(scored), "jobs": jobs}
 
     def get_job(self, job_id):

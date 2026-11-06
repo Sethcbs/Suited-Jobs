@@ -51,6 +51,26 @@ def test_search_orders_by_matched_count_then_score_then_newest():
     assert ids == ["two", "new", "old"]
 
 
+def test_newest_unlisted_jobs_keep_slots_when_many_jobs_match():
+    rows = [row(f"m{i}", ["Python"]) for i in range(30)]
+    rows += [row(f"u{i}", [], f"2026-10-{i + 10}") for i in range(8)]
+    result = JobTools(rows, "", []).search_jobs(["Python"])
+    ids = [j["job_id"] for j in result["jobs"]]
+    assert len(ids) == 20 and result["total_found"] == 38
+    assert ids[-5:] == ["u7", "u6", "u5", "u4", "u3"]  # last, and newest first
+    assert all(i.startswith("m") for i in ids[:15])
+
+
+def test_unused_slots_go_to_whichever_jobs_exist():
+    few_unlisted = [row(f"m{i}", ["Python"]) for i in range(30)] + [row("u", [])]
+    ids = [j["job_id"] for j in JobTools(few_unlisted, "", []).search_jobs(["Python"])["jobs"]]
+    assert len(ids) == 20 and ids[-1] == "u" and sum(i.startswith("m") for i in ids) == 19
+
+    few_matched = [row("m", ["Python"])] + [row(f"u{i}", []) for i in range(30)]
+    ids = [j["job_id"] for j in JobTools(few_matched, "", []).search_jobs(["Python"])["jobs"]]
+    assert len(ids) == 20 and ids[0] == "m"
+
+
 def test_search_limit_reports_total():
     rows = [row(str(i), ["Python"]) for i in range(30)]
     result = JobTools(rows, "", []).search_jobs(["Python"])
