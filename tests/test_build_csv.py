@@ -101,6 +101,20 @@ def test_drops_jobs_outside_metros_and_gone_jobs(metros, patterns):
 
 
 # --- schema / blanks (FR-2) ---
+def test_cities_win_over_location_text(metros, patterns):
+    foreign = job(1, location="Vancouver", cities=[])  # a board left it out as abroad
+    joined = job(2, location="Portland, ME; Seattle, WA", cities=["Portland, ME", "Seattle, WA"])
+    rows = build_csv.build([foreign, joined], "2026-11-06", metros, patterns)
+    assert [(r["job_id"], r["metro"]) for r in rows] == [(joined["job_id"], "Seattle")]
+
+
+def test_location_is_used_when_a_job_has_no_cities_field(metros, patterns):
+    no_cities = job(1)
+    del no_cities["cities"]
+    rows = build_csv.build([no_cities], "2026-11-06", metros, patterns)
+    assert rows[0]["metro"] == "Portland"
+
+
 def test_row_has_all_columns_and_blanks(metros, patterns):
     rows = build_csv.build([job(1, remote=True, date="")], "2026-10-30", metros, patterns)
     row = rows[0]

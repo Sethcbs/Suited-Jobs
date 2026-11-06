@@ -79,7 +79,10 @@ def build(jobs, today, metros, patterns):
         if job.get("remote"):
             groups["remote"].append(job)
             continue
-        metro = match_metro(job.get("cities", []) + [job.get("location", "")], metros)
+        # Cities win over location text: boards leave out places they know are abroad,
+        # and a joined "Portland, ME; Seattle, WA" would pair a city with the wrong state
+        places = job["cities"] if "cities" in job else [job.get("location", "")]
+        metro = match_metro(places, metros)
         if metro:  # non-remote jobs outside both metros are dropped
             metro_of[job["job_id"]] = metro
             groups[metro].append(job)
